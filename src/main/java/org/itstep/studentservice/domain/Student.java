@@ -1,7 +1,12 @@
 package org.itstep.studentservice.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import java.util.Date;
 
@@ -12,22 +17,18 @@ public class Student {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
         private int id;
     @Column(name = "first_name", nullable = false)
+    @NotBlank
+    @Length(min = 3, max = 50)
     private String firstName;
     @Column(name = "last_name", nullable = false)
+    @NotBlank
+    @Length(min = 3, max = 50)
     private String lastName;
     @Column(name = "birthday")
+    @Past
     private Date birthday;
-    private Integer phone;
+    @Pattern(regexp = "^\\+380\\d{9}$")
+    private String phone;
+    @Email
     private String email;
-
-    public Student(String firstName, String lastName, int phone, String email) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
-        this.email = email;
-    }
-
-    public Student() {
-
-    }
 }

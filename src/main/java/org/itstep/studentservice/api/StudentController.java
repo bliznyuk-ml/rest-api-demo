@@ -1,17 +1,22 @@
 package org.itstep.studentservice.api;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.itstep.studentservice.domain.Student;
 import org.itstep.studentservice.repository.StudentRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+@Slf4j
 @RequestMapping("/api/v1/student/")
 @RequiredArgsConstructor
 @RestController
@@ -35,12 +40,23 @@ public class StudentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody Student student) {
+    public void save(@RequestBody @Validated Student student, BindingResult bindingResult) {
         try {
-            var savedStudent = studentRepository.save(student);
-            return ResponseEntity
-                    .created(URI.create("/api/v1/student/%s".formatted(savedStudent.getId())))
-                    .build();
+            if (!bindingResult.hasErrors()) {
+//                var savedStudent =
+                        studentRepository.save(student);
+//                return ResponseEntity
+//                        .created(URI.create("/api/v1/student/%s".formatted(savedStudent.getId())))
+//                        .build();
+                log.info("Student added to database");
+            } else {
+                log.error("Error with fields: %s".formatted(
+                        bindingResult.getFieldErrors()
+                                .stream()
+                                .map(fieldError -> fieldError.getField() + " because " + fieldError.getDefaultMessage())
+                                .distinct()
+                                .collect(Collectors.joining(","))));
+            }
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
             throw ex;
@@ -48,7 +64,7 @@ public class StudentController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody Student student) {
+    public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody @Validated Student student, BindingResult bindingResult) {
         Optional<Student> optionalStudent = studentRepository.findById(id);
         if (optionalStudent.isPresent()) {
             Student st = optionalStudent.get();
